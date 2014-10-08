@@ -1,0 +1,16 @@
+{
+  "name": "xcraft-core-etc",
+  "version": "0.1.0",
+  "description": "Xcraft configuration provider",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "xcraft",
+    "config",
+    "etc"
+  ],
+  "author": "Samuel Loup",
+  "license": "BSD-2-Clause"
+}

@@ -17,7 +17,7 @@ var etcPath    = path.resolve (__dirname, '../../etc/');
  * @param {Object} config - The Inquirer definition.
  * @param {string} moduleName
  */
-exports.createDefaultConfigFile = function (config, moduleName) {
+exports.createDefault = function (config, moduleName) {
   var moduleEtc = path.resolve (etcPath, moduleName);
   xFs.mkdir (moduleEtc);
 
@@ -36,7 +36,7 @@ exports.createDefaultConfigFile = function (config, moduleName) {
   fs.writeFileSync (fileName, JSON.stringify (defaultConfig, null, '  '));
 };
 
-exports.createAllConfigFiles = function (modulePath, filterRegex) {
+exports.createAll = function (modulePath, filterRegex) {
   var path  = require ('path');
   var zogFs = require ('xcraft-core-fs');
 
@@ -46,12 +46,12 @@ exports.createAllConfigFiles = function (modulePath, filterRegex) {
     var xModule = require (path.join (modulePath, fileName));
 
     if (xModule.hasOwnProperty ('xcraftConfig')) {
-      exports.createDefaultConfigFile (xModule.xcraftConfig, fileName);
+      exports.createDefault (xModule.xcraftConfig, fileName);
     }
   });
 };
 
-exports.loadConfigFileForPackage = function (packageName) {
+exports.load = function (packageName) {
   var configFile = path.join (etcPath, packageName, 'config.json');
 
   zogLog.verb ('Load config file from ' + configFile);

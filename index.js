@@ -13,14 +13,14 @@ module.exports = function (configFilePath) {
   etcPath = path.normalize (configFilePath);
   xFs.mkdir (etcPath);
   zogLog.info ('Initialized config directory at ' + etcPath);
-  
+
   return {
     createDefaultConfigFile : function (config) {
       zogLog.info ('Create config file in ' + etcPath);
 
       var defaultConfig = {};
       var fileName      = path.join (etcPath, 'config.json');
-      config.forEach (function(def) {
+      config.forEach (function (def) {
         if (def.hasOwnProperty ('default') ) {
           defaultConfig[def.name] = def.default;
         }

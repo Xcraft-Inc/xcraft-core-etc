@@ -11,6 +11,11 @@
     "config",
     "etc"
   ],
+  "dependencies": {
+    "inquirer" : "0.8.0",
+    "xcraft-core-fs" : "0.1.0",
+    "xcraft-core-log": "0.1.0"
+  },
   "author": "Samuel Loup & Mathieu Schroeter",
   "license": "BSD-2-Clause"
 }

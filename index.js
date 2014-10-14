@@ -6,10 +6,32 @@ var path       = require ('path');
 var fs         = require ('fs');
 var xFs        = require ('xcraft-core-fs');
 var zogLog     = require ('xcraft-core-log') (moduleName);
+var inquirer   = require ('inquirer');
 
 /* FIXME: look for a better way in order to retrieve the main etc/ directory. */
 var etcPath    = path.resolve (__dirname, '../../etc/');
 
+var runWizard = function (wizard, callbackDone) {
+
+  inquirer.prompt (wizard, function (answers) {
+    var hasChanged = false;
+
+    zogLog.verb ('JSON output:\n' + JSON.stringify (answers, null, '  '));
+
+    Object.keys (answers).forEach (function (item) {
+      if (wizard[item] !== answers[item]) {
+        wizard[item] = answers[item];
+        hasChanged = true;
+      }
+    });
+
+    /*TODO: Saving... new config file */
+
+    if (callbackDone) {
+      callbackDone ();
+    }
+  });
+};
 
 /**
  * Create the config file for a specific module.
@@ -50,6 +72,27 @@ exports.createAll = function (modulePath, filterRegex) {
     }
   });
 };
+
+exports.configureAll = function (modulePath, filterRegex) {
+  var async = require ('async');
+  var path  = require ('path');
+  var zogFs = require ('xcraft-core-fs');
+  var wizards = [];
+
+  var xModulesFiles = zogFs.ls (modulePath, filterRegex);
+
+  xModulesFiles.forEach (function (fileName) {
+    var xModule = require (path.join (modulePath, fileName));
+    if (xModule.hasOwnProperty ('xcraftConfig')) {
+      wizards.push (xModule.xcraftConfig);
+    }
+  });
+
+  async.eachSeries (wizards, function (wiz, callback) {
+    zogLog.info ('configure Xcraft (%s)', wiz);
+    runWizard (wiz, callback);
+  });
+},
 
 exports.load = function (packageName) {
   var configFile = path.join (etcPath, packageName, 'config.json');

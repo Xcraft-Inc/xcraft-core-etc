@@ -92,7 +92,7 @@ exports.configureAll = function (modulePath, filterRegex) {
     zogLog.info ('configure Xcraft (%s)', wiz);
     runWizard (wiz, callback);
   });
-},
+};
 
 exports.load = function (packageName) {
   var configFile = path.join (etcPath, packageName, 'config.json');

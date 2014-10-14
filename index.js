@@ -12,7 +12,6 @@ var inquirer   = require ('inquirer');
 var etcPath    = path.resolve (__dirname, '../../etc/');
 
 var runWizard = function (wizard, callbackDone) {
-
   inquirer.prompt (wizard, function (answers) {
     var hasChanged = false;
 

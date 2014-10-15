@@ -7,6 +7,7 @@ var fs         = require ('fs');
 var xFs        = require ('xcraft-core-fs');
 var zogLog     = require ('xcraft-core-log') (moduleName);
 var inquirer   = require ('inquirer');
+var confCache  = {};
 
 /* FIXME: look for a better way in order to retrieve the main etc/ directory. */
 var etcPath    = path.resolve (__dirname, '../../etc/');
@@ -96,11 +97,15 @@ exports.configureAll = function (modulePath, filterRegex) {
 exports.load = function (packageName) {
   var configFile = path.join (etcPath, packageName, 'config.json');
 
-  zogLog.verb ('Load config file from ' + configFile);
-
   /* FIXME: handle fallback to the internal package config entries. */
   try {
-    return JSON.parse (fs.readFileSync (configFile, 'utf8'));
+    if (confCache[packageName] === undefined) {
+      zogLog.verb ('Load config file from ' + configFile);
+      confCache[packageName] = JSON.parse (fs.readFileSync (configFile, 'utf8'));
+      return confCache[packageName];
+    } else {
+      return confCache[packageName];
+    }
   } catch (err) {
     return null;
   }

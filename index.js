@@ -6,32 +6,10 @@ var path       = require ('path');
 var fs         = require ('fs');
 var xFs        = require ('xcraft-core-fs');
 var zogLog     = require ('xcraft-core-log') (moduleName);
-var inquirer   = require ('inquirer');
 var confCache  = {};
 
 /* FIXME: look for a better way in order to retrieve the main etc/ directory. */
 var etcPath    = path.resolve (__dirname, '../../etc/');
-
-var runWizard = function (wizard, callbackDone) {
-  inquirer.prompt (wizard, function (answers) {
-    var hasChanged = false;
-
-    zogLog.verb ('JSON output:\n' + JSON.stringify (answers, null, '  '));
-
-    Object.keys (answers).forEach (function (item) {
-      if (wizard[item] !== answers[item]) {
-        wizard[item] = answers[item];
-        hasChanged = true;
-      }
-    });
-
-    /*TODO: Saving... new config file */
-
-    if (callbackDone) {
-      callbackDone ();
-    }
-  });
-};
 
 /**
  * Create the config file for a specific module.

@@ -73,7 +73,7 @@ exports.createAll = function (modulePath, filterRegex) {
   });
 };
 
-exports.configureAll = function (modulePath, filterRegex) {
+exports.configureAll = function (modulePath, filterRegex, wizCallback) {
   var async = require ('async');
   var path  = require ('path');
   var zogFs = require ('xcraft-core-fs');
@@ -90,7 +90,21 @@ exports.configureAll = function (modulePath, filterRegex) {
 
   async.eachSeries (wizards, function (wiz, callback) {
     zogLog.info ('configure Xcraft (%s)', wiz);
-    runWizard (wiz, callback);
+    wizCallback (wiz, function (answers) {
+      var hasChanged = false;
+
+      zogLog.verb ('JSON output:\n' + JSON.stringify (answers, null, '  '));
+
+      Object.keys (answers).forEach (function (item) {
+        if (wiz[item] !== answers[item]) {
+          wiz[item] = answers[item];
+          hasChanged = true;
+        }
+      });
+      callback ();
+    });
+  }, function (err) {
+    wizCallback ();
   });
 };
 

@@ -79,6 +79,9 @@ exports.configureAll = function (modulePath, filterRegex, wizCallback) {
           hasChanged = true;
         }
       });
+
+      /*TODO: Saving... new config file */
+
       callback ();
     });
   }, function (err) {

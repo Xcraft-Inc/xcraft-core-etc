@@ -55,27 +55,27 @@ exports.configureAll = function (modulePath, filterRegex, wizCallback) {
   var async = require ('async');
   var path  = require ('path');
   var zogFs = require ('xcraft-core-fs');
-  var wizards = [];
+  var wizards = {};
 
   var xModulesFiles = zogFs.ls (modulePath, filterRegex);
 
   xModulesFiles.forEach (function (fileName) {
     var xModule = require (path.join (modulePath, fileName));
     if (xModule.hasOwnProperty ('xcraftConfig')) {
-      wizards.push (xModule.xcraftConfig);
+      wizards[fileName] = xModule.xcraftConfig;
     }
   });
 
-  async.eachSeries (wizards, function (wiz, callback) {
+  async.eachSeries (Object.keys (wizards), function (wiz, callback) {
     zogLog.info ('configure Xcraft (%s)', wiz);
-    wizCallback (wiz, function (answers) {
+    wizCallback (wizards[wiz], function (answers) {
       var hasChanged = false;
 
       zogLog.verb ('JSON output:\n' + JSON.stringify (answers, null, '  '));
 
       Object.keys (answers).forEach (function (item) {
-        if (wiz[item] !== answers[item]) {
-          wiz[item] = answers[item];
+        if (wizards[wiz][item] !== answers[item]) {
+          wizards[wiz][item] = answers[item];
           hasChanged = true;
         }
       });

@@ -80,7 +80,10 @@ exports.configureAll = function (modulePath, filterRegex, wizCallback) {
         }
       });
 
-      /*TODO: Saving... new config file */
+      if (hasChanged) {
+        var configFile = path.join (etcPath, wiz, 'config.json');
+        fs.writeFileSync (configFile, JSON.stringify (answers, null, '  '));
+      }
 
       callback ();
     });

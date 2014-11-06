@@ -39,10 +39,10 @@ exports.createDefault = function (config, moduleName) {
 };
 
 exports.createAll = function (modulePath, filterRegex) {
-  var path  = require ('path');
-  var zogFs = require ('xcraft-core-fs');
+  var path = require ('path');
+  var xFs  = require ('xcraft-core-fs');
 
-  var xModulesFiles = zogFs.ls (modulePath, filterRegex);
+  var xModulesFiles = xFs.ls (modulePath, filterRegex);
 
   xModulesFiles.forEach (function (fileName) {
     var xModule = require (path.join (modulePath, fileName));
@@ -56,10 +56,10 @@ exports.createAll = function (modulePath, filterRegex) {
 exports.configureAll = function (modulePath, filterRegex, wizCallback) {
   var async = require ('async');
   var path  = require ('path');
-  var zogFs = require ('xcraft-core-fs');
+  var xFs   = require ('xcraft-core-fs');
   var wizards = {};
 
-  var xModulesFiles = zogFs.ls (modulePath, filterRegex);
+  var xModulesFiles = xFs.ls (modulePath, filterRegex);
 
   xModulesFiles.forEach (function (fileName) {
     var xModule = require (path.join (modulePath, fileName));

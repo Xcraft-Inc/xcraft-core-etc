@@ -2,10 +2,12 @@
 
 var moduleName = 'config';
 
-var path       = require ('path');
-var fs         = require ('fs');
-var xFs        = require ('xcraft-core-fs');
-var zogLog     = require ('xcraft-core-log') (moduleName);
+var path = require ('path');
+var fs   = require ('fs');
+
+var xFs  = require ('xcraft-core-fs');
+var xLog = require ('xcraft-core-log') (moduleName);
+
 var confCache  = {};
 
 /* FIXME: look for a better way in order to retrieve the main etc/ directory. */
@@ -21,7 +23,7 @@ exports.createDefault = function (config, moduleName) {
   var moduleEtc = path.resolve (etcPath, moduleName);
   xFs.mkdir (moduleEtc);
 
-  zogLog.info ('Create config file in ' + moduleEtc);
+  xLog.info ('Create config file in ' + moduleEtc);
 
   var defaultConfig = {};
   var fileName = path.join (moduleEtc, 'config.json');
@@ -32,7 +34,7 @@ exports.createDefault = function (config, moduleName) {
     }
   });
 
-  zogLog.verb (JSON.stringify (defaultConfig));
+  xLog.verb (JSON.stringify (defaultConfig));
   fs.writeFileSync (fileName, JSON.stringify (defaultConfig, null, '  '));
 };
 
@@ -67,11 +69,11 @@ exports.configureAll = function (modulePath, filterRegex, wizCallback) {
   });
 
   async.eachSeries (Object.keys (wizards), function (wiz, callback) {
-    zogLog.info ('configure Xcraft (%s)', wiz);
+    xLog.info ('configure Xcraft (%s)', wiz);
     wizCallback (wizards[wiz], function (answers) {
       var hasChanged = false;
 
-      zogLog.verb ('JSON output:\n' + JSON.stringify (answers, null, '  '));
+      xLog.verb ('JSON output:\n' + JSON.stringify (answers, null, '  '));
 
       Object.keys (answers).forEach (function (item) {
         if (wizards[wiz][item] !== answers[item]) {
@@ -98,7 +100,7 @@ exports.load = function (packageName) {
   /* FIXME: handle fallback to the internal package config entries. */
   try {
     if (confCache[packageName] === undefined) {
-      zogLog.verb ('Load config file from ' + configFile);
+      xLog.verb ('Load config file from ' + configFile);
       confCache[packageName] = JSON.parse (fs.readFileSync (configFile, 'utf8'));
       return confCache[packageName];
     } else {

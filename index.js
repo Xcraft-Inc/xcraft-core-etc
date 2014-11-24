@@ -16,6 +16,7 @@ var etcPath    = path.resolve (__dirname, '../../etc/');
 /**
  * Create the config file for a specific module.
  * A subdirectory is created for the module.
+ *
  * @param {Object} config - The Inquirer definition.
  * @param {string} moduleName
  */

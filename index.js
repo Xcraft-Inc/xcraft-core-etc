@@ -100,7 +100,7 @@ exports.configureAll = function (modulePath, filterRegex, wizCallback) {
 
       callback ();
     });
-  }, function (err) {
+  }, function () {
     wizCallback ();
   });
 };

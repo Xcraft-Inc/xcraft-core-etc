@@ -66,6 +66,16 @@ exports.configureAll = function (modulePath, filterRegex, wizCallback) {
     var xModule = require (path.join (modulePath, fileName));
     if (xModule.hasOwnProperty ('xcraftConfig')) {
       wizards[fileName] = xModule.xcraftConfig;
+
+      /* Retrieve the current values if possible. */
+      try {
+        var configFile = path.join (etcPath, fileName, 'config.json');
+        var data = JSON.parse (fs.readFileSync (configFile, 'utf8'));
+
+        wizards[fileName].forEach (function (item, index) {
+          wizards[fileName][index].default = data[item.name];
+        });
+      } catch (ex) {}
     }
   });
 

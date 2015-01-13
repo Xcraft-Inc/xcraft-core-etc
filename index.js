@@ -10,8 +10,16 @@ var xLog = require ('xcraft-core-log') (moduleName);
 
 var confCache  = {};
 
-/* FIXME: look for a better way in order to retrieve the main etc/ directory. */
 var etcPath    = path.resolve (__dirname, '../../etc/');
+if (!fs.existsSync(etcPath)) {
+  var dirArray = __dirname.split (path.sep);
+  var pos = dirArray.indexOf('toolchain');
+  var toolChainDir = path.resolve (__dirname, dirArray.slice (0, pos + 1).join (path.sep));
+  etcPath = path.join (toolChainDir, 'etc');
+  if (!fs.existsSync(etcPath)) {
+    xLog.err ('root etc cannot be resolved ! are you in the toolchain ?');
+  }
+}
 
 /**
  * Create the config file for a specific module.

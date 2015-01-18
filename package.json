@@ -11,6 +11,10 @@
     "config",
     "etc"
   ],
+  "repository": {
+    "type": "file",
+    "url": "lib/xcraft-core-etc"
+  },
   "dependencies": {
     "xcraft-core-fs" : "0.1.0",
     "xcraft-core-log": "0.1.0"

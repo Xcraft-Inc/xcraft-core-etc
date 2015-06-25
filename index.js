@@ -1,6 +1,6 @@
 'use strict';
 
-var moduleName = 'config';
+var moduleName = 'etc';
 
 var path = require ('path');
 var fs   = require ('fs');

@@ -125,7 +125,7 @@ exports.load = function (packageName) {
     } else {
       return confCache[packageName];
     }
-  } catch (err) {
+  } catch (ex) {
     return null;
   }
 };

@@ -53,12 +53,15 @@ exports.createAll = function (modulePath, filterRegex) {
 
   var xModulesFiles = xFs.ls (modulePath, filterRegex);
 
-  xModulesFiles.forEach (function (fileName) {
-    var xModule = require (path.join (modulePath, fileName));
-
-    if (xModule.hasOwnProperty ('xcraftConfig')) {
-      exports.createDefault (xModule.xcraftConfig, fileName);
+  xModulesFiles.forEach (function (mod) {
+    var xModule = null;
+    try {
+      xModule = require (path.join (modulePath, mod, 'config.js'));
+    } catch (ex) {
+      return;
     }
+
+    exports.createDefault (xModule, mod);
   });
 };
 
@@ -70,21 +73,25 @@ exports.configureAll = function (modulePath, filterRegex, wizCallback) {
 
   var xModulesFiles = xFs.ls (modulePath, filterRegex);
 
-  xModulesFiles.forEach (function (fileName) {
-    var xModule = require (path.join (modulePath, fileName));
-    if (xModule.hasOwnProperty ('xcraftConfig')) {
-      wizards[fileName] = xModule.xcraftConfig;
-
-      /* Retrieve the current values if possible. */
-      try {
-        var configFile = path.join (etcPath, fileName, 'config.json');
-        var data = JSON.parse (fs.readFileSync (configFile, 'utf8'));
-
-        wizards[fileName].forEach (function (item, index) {
-          wizards[fileName][index].default = data[item.name];
-        });
-      } catch (ex) {}
+  xModulesFiles.forEach (function (mod) {
+    var xModule = null;
+    try {
+      xModule = require (path.join (modulePath, mod, 'config.js'));
+    } catch (ex) {
+      return;
     }
+
+    wizards[mod] = xModule;
+
+    /* Retrieve the current values if possible. */
+    try {
+      var configFile = path.join (etcPath, mod, 'config.json');
+      var data = JSON.parse (fs.readFileSync (configFile, 'utf8'));
+
+      wizards[mod].forEach (function (item, index) {
+        wizards[mod][index].default = data[item.name];
+      });
+    } catch (ex) {}
   });
 
   async.eachSeries (Object.keys (wizards), function (wiz, callback) {

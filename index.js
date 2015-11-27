@@ -10,15 +10,12 @@ var xLog = require ('xcraft-core-log') (moduleName);
 
 var confCache  = {};
 
-var etcPath    = path.resolve (__dirname, '../../etc/');
+var dirArray = __dirname.split (path.sep);
+var pos = dirArray.indexOf ('toolchain');
+var toolChainDir = path.resolve (__dirname, dirArray.slice (0, pos + 1).join (path.sep));
+var etcPath = path.join (toolChainDir, 'etc');
 if (!fs.existsSync (etcPath)) {
-  var dirArray = __dirname.split (path.sep);
-  var pos = dirArray.indexOf ('toolchain');
-  var toolChainDir = path.resolve (__dirname, dirArray.slice (0, pos + 1).join (path.sep));
-  etcPath = path.join (toolChainDir, 'etc');
-  if (!fs.existsSync (etcPath)) {
-    xLog.err ('root etc cannot be resolved ! are you in the toolchain ?');
-  }
+  xLog.err ('${root}/etc cannot be resolved! Are you in the toolchain?');
 }
 
 /**

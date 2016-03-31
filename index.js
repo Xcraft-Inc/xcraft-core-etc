@@ -150,6 +150,10 @@ module.exports = (root) => {
     return etcInstance;
   }
 
+  if (!root && process.env.XCRAFT_ETC) {
+    root = process.env.XCRAFT_ETC;
+  }
+
   etcInstance = new Etc (root);
   return etcInstance;
 };

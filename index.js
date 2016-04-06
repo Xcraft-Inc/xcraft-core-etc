@@ -1,18 +1,16 @@
 'use strict';
 
-var moduleName = 'etc';
-
 var path = require ('path');
 var fs   = require ('fs');
 
 var xFs  = require ('xcraft-core-fs');
-var xLog = require ('xcraft-core-log') (moduleName);
 
 let etcInstance = null;
 
 class Etc {
-  constructor (root) {
+  constructor (root, response) {
     this.confCache  = {};
+    this._response = response;
 
     if (!root) {
       const dirArray = __dirname.split (path.sep);
@@ -24,7 +22,7 @@ class Etc {
     }
 
     if (!fs.existsSync (this.etcPath)) {
-      xLog.err ('${root}/etc cannot be resolved! Are you in the toolchain?');
+      this._response.log.err ('${root}/etc cannot be resolved! Are you in the toolchain?');
     }
   }
 
@@ -39,7 +37,7 @@ class Etc {
     var moduleEtc = path.resolve (this.etcPath, moduleName);
     xFs.mkdir (moduleEtc);
 
-    xLog.info ('Create config file in ' + moduleEtc);
+    this._response.log.info ('Create config file in ' + moduleEtc);
 
     var defaultConfig = {};
     var fileName = path.join (moduleEtc, 'config.json');
@@ -50,7 +48,7 @@ class Etc {
       }
     });
 
-    xLog.verb (JSON.stringify (defaultConfig));
+    this._response.log.verb (JSON.stringify (defaultConfig));
     fs.writeFileSync (fileName, JSON.stringify (defaultConfig, null, '  '));
   }
 
@@ -73,6 +71,8 @@ class Etc {
   }
 
   configureAll (modulePath, filterRegex, wizCallback) {
+    const self = this;
+
     var async = require ('async');
     var path  = require ('path');
     var xFs   = require ('xcraft-core-fs');
@@ -102,11 +102,11 @@ class Etc {
     });
 
     async.eachSeries (Object.keys (wizards), function (wiz, callback) {
-      xLog.info ('configure Xcraft (%s)', wiz);
+      self._response.log.info ('configure Xcraft (%s)', wiz);
       wizCallback (wizards[wiz], function (answers) {
         var hasChanged = false;
 
-        xLog.verb ('JSON output:\n' + JSON.stringify (answers, null, '  '));
+        self._response.log.verb ('JSON output:\n' + JSON.stringify (answers, null, '  '));
 
         Object.keys (answers).forEach (function (item) {
           if (wizards[wiz][item] !== answers[item]) {
@@ -133,7 +133,7 @@ class Etc {
     /* FIXME: handle fallback to the internal package config entries. */
     try {
       if (this.confCache[packageName] === undefined) {
-        xLog.verb ('Load config file from ' + configFile);
+        this._response.log.verb ('Load config file from ' + configFile);
         this.confCache[packageName] = JSON.parse (fs.readFileSync (configFile, 'utf8'));
         return this.confCache[packageName];
       } else {
@@ -145,7 +145,7 @@ class Etc {
   }
 }
 
-module.exports = (root) => {
+module.exports = (root, response) => {
   if (etcInstance) {
     return etcInstance;
   }
@@ -154,6 +154,12 @@ module.exports = (root) => {
     root = process.env.XCRAFT_ETC;
   }
 
-  etcInstance = new Etc (root);
+  if (!response) {
+    response = {
+      log: require ('xcraft-core-log') ('etc')
+    };
+  }
+
+  etcInstance = new Etc (root, response);
   return etcInstance;
 };

@@ -92,7 +92,7 @@ class Etc {
 
       /* Retrieve the current values if possible. */
       try {
-        var configFile = path.join (this.etcPath, mod, 'config.json');
+        var configFile = path.join (self.etcPath, mod, 'config.json');
         var data = JSON.parse (fs.readFileSync (configFile, 'utf8'));
 
         wizards[mod].forEach (function (item, index) {
@@ -116,7 +116,7 @@ class Etc {
         });
 
         if (hasChanged) {
-          var configFile = path.join (this.etcPath, wiz, 'config.json');
+          var configFile = path.join (self.etcPath, wiz, 'config.json');
           fs.writeFileSync (configFile, JSON.stringify (answers, null, '  '));
         }
 

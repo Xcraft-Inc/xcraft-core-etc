@@ -22,7 +22,7 @@ class Etc {
     }
 
     if (!fs.existsSync (this.etcPath)) {
-      this._response.log.err ('${root}/etc cannot be resolved! Are you in the toolchain?');
+      this._response.log.err ('${root}/etc cannot be resolved!');
     }
   }
 

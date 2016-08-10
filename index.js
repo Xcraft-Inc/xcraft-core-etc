@@ -32,6 +32,7 @@ class Etc {
    *
    * @param {Object} config - The Inquirer definition.
    * @param {string} moduleName
+   * @param {Object} [override] - Overload default values.
    */
   createDefault (config, moduleName, override) {
     var moduleEtc = path.resolve (this.etcPath, moduleName);

@@ -58,12 +58,9 @@ class Etc {
   createAll (modulePath, filterRegex, overriderFile) {
     var path = require ('path');
     var xFs  = require ('xcraft-core-fs');
-    let overrider;
     var xModulesFiles = xFs.ls (modulePath, filterRegex);
+    const overrider = overriderFile ? require (overriderFile) : {};
 
-    if (overriderFile) {
-      overrider = require (overriderFile);
-    }
     xModulesFiles.forEach ((mod) => {
       var xModule = null;
       try {

@@ -33,7 +33,7 @@ class Etc {
    * @param {Object} config - The Inquirer definition.
    * @param {string} moduleName
    */
-  createDefault (config, moduleName) {
+  createDefault (config, moduleName, override) {
     var moduleEtc = path.resolve (this.etcPath, moduleName);
     xFs.mkdir (moduleEtc);
 
@@ -43,7 +43,9 @@ class Etc {
     var fileName = path.join (moduleEtc, 'config.json');
 
     config.forEach (function (def) {
-      if (def.hasOwnProperty ('default') ) {
+      if (override && override[def.name]) {
+        defaultConfig[def.name] = override[def.name];
+      } else if (def.hasOwnProperty ('default') ) {
         defaultConfig[def.name] = def.default;
       }
     });
@@ -52,12 +54,15 @@ class Etc {
     fs.writeFileSync (fileName, JSON.stringify (defaultConfig, null, '  '));
   }
 
-  createAll (modulePath, filterRegex) {
+  createAll (modulePath, filterRegex, overriderFile) {
     var path = require ('path');
     var xFs  = require ('xcraft-core-fs');
-
+    let overrider;
     var xModulesFiles = xFs.ls (modulePath, filterRegex);
 
+    if (overriderFile) {
+      overrider = require (overriderFile);
+    }
     xModulesFiles.forEach ((mod) => {
       var xModule = null;
       try {
@@ -66,7 +71,7 @@ class Etc {
         return;
       }
 
-      this.createDefault (xModule, mod);
+      this.createDefault (xModule, mod, overrider[mod]);
     });
   }
 

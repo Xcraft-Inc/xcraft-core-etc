@@ -1,21 +1,24 @@
 'use strict';
 
 var path = require ('path');
-var fs   = require ('fs');
+var fs = require ('fs');
 
-var xFs  = require ('xcraft-core-fs');
+var xFs = require ('xcraft-core-fs');
 
 let etcInstance = null;
 
 class Etc {
   constructor (root, response) {
-    this.confCache  = {};
+    this.confCache = {};
     this._response = response;
 
     if (!root) {
       const dirArray = __dirname.split (path.sep);
       const pos = dirArray.indexOf ('toolchain');
-      const toolChainDir = path.resolve (__dirname, dirArray.slice (0, pos + 1).join (path.sep));
+      const toolChainDir = path.resolve (
+        __dirname,
+        dirArray.slice (0, pos + 1).join (path.sep)
+      );
       this.etcPath = path.join (toolChainDir, 'etc');
     } else {
       this.etcPath = root;
@@ -46,7 +49,7 @@ class Etc {
     config.forEach (function (def) {
       if (override && override[def.name]) {
         defaultConfig[def.name] = override[def.name];
-      } else if (def.hasOwnProperty ('default') ) {
+      } else if (def.hasOwnProperty ('default')) {
         defaultConfig[def.name] = def.default;
       }
     });
@@ -57,11 +60,11 @@ class Etc {
 
   createAll (modulePath, filterRegex, overriderFile) {
     var path = require ('path');
-    var xFs  = require ('xcraft-core-fs');
+    var xFs = require ('xcraft-core-fs');
     var xModulesFiles = xFs.ls (modulePath, filterRegex);
     const overrider = overriderFile ? require (overriderFile) : {};
 
-    xModulesFiles.forEach ((mod) => {
+    xModulesFiles.forEach (mod => {
       var xModule = null;
       try {
         xModule = require (path.join (modulePath, mod, 'config.js'));
@@ -77,8 +80,8 @@ class Etc {
     const self = this;
 
     var async = require ('async');
-    var path  = require ('path');
-    var xFs   = require ('xcraft-core-fs');
+    var path = require ('path');
+    var xFs = require ('xcraft-core-fs');
     var wizards = {};
 
     var xModulesFiles = xFs.ls (modulePath, filterRegex);
@@ -104,30 +107,36 @@ class Etc {
       } catch (ex) {}
     });
 
-    async.eachSeries (Object.keys (wizards), function (wiz, callback) {
-      self._response.log.info ('configure Xcraft (%s)', wiz);
-      wizCallback (wizards[wiz], function (answers) {
-        var hasChanged = false;
+    async.eachSeries (
+      Object.keys (wizards),
+      function (wiz, callback) {
+        self._response.log.info ('configure Xcraft (%s)', wiz);
+        wizCallback (wizards[wiz], function (answers) {
+          var hasChanged = false;
 
-        self._response.log.verb ('JSON output:\n' + JSON.stringify (answers, null, '  '));
+          self._response.log.verb (
+            'JSON output:\n' + JSON.stringify (answers, null, '  ')
+          );
 
-        Object.keys (answers).forEach (function (item) {
-          if (wizards[wiz][item] !== answers[item]) {
-            wizards[wiz][item] = answers[item];
-            hasChanged = true;
+          Object.keys (answers).forEach (function (item) {
+            if (wizards[wiz][item] !== answers[item]) {
+              wizards[wiz][item] = answers[item];
+              hasChanged = true;
+            }
+          });
+
+          if (hasChanged) {
+            var configFile = path.join (self.etcPath, wiz, 'config.json');
+            fs.writeFileSync (configFile, JSON.stringify (answers, null, '  '));
           }
+
+          callback ();
         });
-
-        if (hasChanged) {
-          var configFile = path.join (self.etcPath, wiz, 'config.json');
-          fs.writeFileSync (configFile, JSON.stringify (answers, null, '  '));
-        }
-
-        callback ();
-      });
-    }, function () {
-      wizCallback ();
-    });
+      },
+      function () {
+        wizCallback ();
+      }
+    );
   }
 
   load (packageName) {
@@ -137,7 +146,9 @@ class Etc {
     try {
       if (this.confCache[packageName] === undefined) {
         this._response.log.verb ('Load config file from ' + configFile);
-        this.confCache[packageName] = JSON.parse (fs.readFileSync (configFile, 'utf8'));
+        this.confCache[packageName] = JSON.parse (
+          fs.readFileSync (configFile, 'utf8')
+        );
         return this.confCache[packageName];
       } else {
         return this.confCache[packageName];
@@ -159,7 +170,7 @@ module.exports = (root, response) => {
 
   if (!response) {
     response = {
-      log: require ('xcraft-core-log') ('etc')
+      log: require ('xcraft-core-log') ('etc'),
     };
   }
 

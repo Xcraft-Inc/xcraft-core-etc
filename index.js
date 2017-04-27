@@ -25,7 +25,7 @@ class Etc {
     }
 
     if (!fs.existsSync (this.etcPath)) {
-      this._response.log.err ('${root}/etc cannot be resolved!');
+      this._response.log.err (`${this.etcPath} cannot be resolved`);
     }
   }
 

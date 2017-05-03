@@ -14,7 +14,7 @@ class Etc {
 
     if (!root) {
       const dirArray = __dirname.split (path.sep);
-      const pos = dirArray.indexOf ('toolchain');
+      const pos = dirArray.indexOf ('toolchain'); /* FIXME: remove this hack */
       const toolChainDir = path.resolve (
         __dirname,
         dirArray.slice (0, pos + 1).join (path.sep)

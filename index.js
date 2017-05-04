@@ -9,8 +9,8 @@ let etcInstance = null;
 
 class Etc {
   constructor (root, resp) {
-    this.confCache = {};
     this._resp = resp;
+    this._confCache = {};
 
     if (!root) {
       const dirArray = __dirname.split (path.sep);
@@ -144,14 +144,14 @@ class Etc {
 
     /* FIXME: handle fallback to the internal package config entries. */
     try {
-      if (this.confCache[packageName] === undefined) {
+      if (this._confCache[packageName] === undefined) {
         this._resp.log.verb ('Load config file from ' + configFile);
-        this.confCache[packageName] = JSON.parse (
+        this._confCache[packageName] = JSON.parse (
           fs.readFileSync (configFile, 'utf8')
         );
-        return this.confCache[packageName];
+        return this._confCache[packageName];
       } else {
-        return this.confCache[packageName];
+        return this._confCache[packageName];
       }
     } catch (ex) {
       return null;

@@ -11,6 +11,10 @@ class Etc {
   constructor (root, resp) {
     this._resp = resp;
     this._confCache = {};
+    this._confRun = {
+      pid: process.pid,
+      fd: null,
+    };
 
     if (!root) {
       const dirArray = __dirname.split (path.sep);
@@ -156,6 +160,27 @@ class Etc {
     } catch (ex) {
       return null;
     }
+  }
+
+  saveRun (packageName, config) {
+    const xConfig = this.load ('xcraft');
+
+    if (!this._confRun.fd) {
+      const run = path.join (
+        xConfig.xcraftRoot,
+        `var/run/xcraftd.${this._confRun.pid}`
+      );
+
+      this._confRun.fd = fs.openSync (run, 'w+');
+
+      process.on ('exit', () => {
+        fs.closeSync (this._confRun.fd);
+        fs.unlinkSync (run);
+      });
+    }
+
+    this._confRun[packageName] = config;
+    fs.writeSync (this._confRun.fd, JSON.stringify (this._confRun, null, 2));
   }
 }
 

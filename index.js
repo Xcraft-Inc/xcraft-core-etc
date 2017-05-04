@@ -108,7 +108,9 @@ class Etc {
         wizards[mod].forEach (function (item, index) {
           wizards[mod][index].default = data[item.name];
         });
-      } catch (ex) {}
+      } catch (ex) {
+        /* ignore all exceptions */
+      }
     });
 
     async.eachSeries (

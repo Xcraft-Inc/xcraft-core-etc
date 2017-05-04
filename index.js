@@ -150,15 +150,13 @@ class Etc {
 
     /* FIXME: handle fallback to the internal package config entries. */
     try {
-      if (this._confCache[packageName] === undefined) {
+      if (!this._confCache[packageName]) {
         this._resp.log.verb ('Load config file from ' + configFile);
         this._confCache[packageName] = JSON.parse (
           fs.readFileSync (configFile, 'utf8')
         );
-        return this._confCache[packageName];
-      } else {
-        return this._confCache[packageName];
       }
+      return this._confCache[packageName];
     } catch (ex) {
       return null;
     }

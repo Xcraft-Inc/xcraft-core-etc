@@ -156,7 +156,15 @@ class Etc {
           fs.readFileSync (configFile, 'utf8')
         );
       }
-      return this._confCache[packageName];
+
+      const config = this._confCache[packageName];
+
+      /* Look for runtime settings */
+      if (this._confRun[packageName]) {
+        Object.assign (config, this._confRun[packageName]);
+      }
+
+      return config;
     } catch (ex) {
       return null;
     }

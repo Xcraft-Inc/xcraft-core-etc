@@ -31,6 +31,19 @@ class Etc {
     if (!fs.existsSync (this.etcPath)) {
       this._resp.log.err (`${this.etcPath} cannot be resolved`);
     }
+
+    const xConfig = this.load ('xcraft');
+
+    /* Clean obsolete daemon files */
+    const isRunning = require ('is-running');
+    const runDir = path.join (xConfig.xcraftRoot, `var/run`);
+    xFs
+      .ls (runDir, /^xcraftd.[0-9]+$/)
+      .map (name => path.join (runDir, name))
+      .filter (
+        file => !isRunning (parseInt (file.replace (/.*(\.[0-9]+$)/, '$1')))
+      )
+      .forEach (fs.unlinkSync);
   }
 
   /**

@@ -19,6 +19,7 @@
     "url": "git+https://github.com/Xcraft-Inc/xcraft-core-etc.git"
   },
   "dependencies": {
+    "is-running": "^2.1.0",
     "xcraft-core-fs": "^1.0.0",
     "xcraft-core-log": "^1.0.0"
   },

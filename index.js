@@ -43,7 +43,13 @@ class Etc {
         .filter (
           file => !isRunning (parseInt (file.replace (/.*(\.[0-9]+$)/, '$1')))
         )
-        .forEach (fs.unlinkSync);
+        .forEach (file => {
+          try {
+            fs.unlinkSync (file);
+          } catch (ex) {
+            /* ignore, it's not critical */
+          }
+        });
     }
   }
 

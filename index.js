@@ -41,7 +41,7 @@ class Etc {
         .ls (runDir, /^xcraftd.[0-9]+$/)
         .map (name => path.join (runDir, name))
         .filter (
-          file => !isRunning (parseInt (file.replace (/.*(\.[0-9]+$)/, '$1')))
+          file => !isRunning (parseInt (file.replace (/.*\.([0-9]+$)/, '$1')))
         )
         .forEach (file => {
           try {

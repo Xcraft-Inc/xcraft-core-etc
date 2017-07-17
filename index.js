@@ -50,6 +50,18 @@ class Etc {
             /* ignore, it's not critical */
           }
         });
+
+      //FIXME: handle multiple running xcraft's
+      xFs
+        .ls (runDir, /^xcraftd.[0-9]+$/)
+        .map (name => path.join (runDir, name))
+        .filter (file =>
+          isRunning (parseInt (file.replace (/.*\.([0-9]+$)/, '$1')))
+        )
+        .forEach (file => {
+          const config = JSON.parse (fs.readFileSync (file).toString ());
+          this._confRun = config;
+        });
     }
   }
 

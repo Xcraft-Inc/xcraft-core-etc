@@ -60,7 +60,9 @@ class Etc {
         )
         .forEach (file => {
           const config = JSON.parse (fs.readFileSync (file).toString ());
-          this._confRun = config;
+          delete config.pid;
+          delete config.fd;
+          Object.assign (this._confRun, config);
         });
     }
   }

@@ -37,9 +37,11 @@ class Etc {
       /* Clean obsolete daemon files */
       const isRunning = require ('is-running');
       const runDir = path.join (xConfig.xcraftRoot, `var/run`);
-      xFs
+      const daemons = xFs
         .ls (runDir, /^xcraftd.[0-9]+$/)
-        .map (name => path.join (runDir, name))
+        .map (name => path.join (runDir, name));
+
+      daemons
         .filter (
           file => !isRunning (parseInt (file.replace (/.*\.([0-9]+$)/, '$1')))
         )
@@ -52,9 +54,7 @@ class Etc {
         });
 
       //FIXME: handle multiple running xcraft's
-      xFs
-        .ls (runDir, /^xcraftd.[0-9]+$/)
-        .map (name => path.join (runDir, name))
+      daemons
         .filter (file =>
           isRunning (parseInt (file.replace (/.*\.([0-9]+$)/, '$1')))
         )

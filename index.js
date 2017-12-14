@@ -8,7 +8,7 @@ var xFs = require ('xcraft-core-fs');
 let etcInstance = null;
 
 class Etc {
-  constructor (root, runPath, resp) {
+  constructor (etcPath, runPath, resp) {
     this._resp = resp;
     this._confCache = {};
     this._confRun = {
@@ -17,7 +17,7 @@ class Etc {
     };
     this._runPath = runPath;
 
-    if (!root) {
+    if (!etcPath) {
       const dirArray = __dirname.split (path.sep);
       const pos = dirArray.indexOf ('toolchain'); /* FIXME: remove this hack */
       const toolChainDir = path.resolve (
@@ -26,7 +26,7 @@ class Etc {
       );
       this._etcPath = path.join (toolChainDir, 'etc');
     } else {
-      this._etcPath = root;
+      this._etcPath = etcPath;
     }
 
     if (!fs.existsSync (this._etcPath)) {
@@ -234,10 +234,11 @@ module.exports = (root, resp) => {
 
   // FIXME: replace by XCRAFT_ROOT or something like that
   if (!root && process.env.XCRAFT_ETC) {
-    root = process.env.XCRAFT_ETC;
+    root = path.resolve (process.env.XCRAFT_ETC, '..');
   }
 
-  const runPath = path.join (root, '../var/run');
+  const etcPath = path.join (root, 'etc');
+  const runPath = path.join (root, 'var/run');
 
   if (!resp) {
     resp = {
@@ -245,6 +246,6 @@ module.exports = (root, resp) => {
     };
   }
 
-  etcInstance = new Etc (root, runPath, resp);
+  etcInstance = new Etc (etcPath, runPath, resp);
   return etcInstance;
 };

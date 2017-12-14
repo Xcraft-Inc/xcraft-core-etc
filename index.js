@@ -180,16 +180,23 @@ class Etc {
     );
   }
 
-  load (packageName) {
-    var configFile = path.join (this._etcPath, packageName, 'config.json');
+  load (packageName, pid = 0) {
+    let configFile;
+
+    const read = file => JSON.parse (fs.readFileSync (file, 'utf8'));
+
+    if (pid > 0) {
+      configFile = path.join (this._runPath, `xcraftd.${pid}`);
+      return read (configFile)[packageName];
+    }
 
     /* FIXME: handle fallback to the internal package config entries. */
     try {
+      configFile = path.join (this._etcPath, packageName, 'config.json');
+
       if (!this._confCache[packageName]) {
         this._resp.log.verb ('Load config file from ' + configFile);
-        this._confCache[packageName] = JSON.parse (
-          fs.readFileSync (configFile, 'utf8')
-        );
+        this._confCache[packageName] = read (configFile);
       }
 
       const config = this._confCache[packageName];
@@ -206,13 +213,8 @@ class Etc {
   }
 
   saveRun (packageName, config) {
-    const xConfig = this.load ('xcraft');
-
     if (!this._confRun.fd) {
-      const run = path.join (
-        xConfig.xcraftRoot,
-        `var/run/xcraftd.${this._confRun.pid}`
-      );
+      const run = path.join (this._runPath, `xcraftd.${this._confRun.pid}`);
 
       this._confRun.fd = fs.openSync (run, 'w+');
 

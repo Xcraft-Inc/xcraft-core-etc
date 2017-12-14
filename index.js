@@ -8,13 +8,14 @@ var xFs = require ('xcraft-core-fs');
 let etcInstance = null;
 
 class Etc {
-  constructor (root, resp) {
+  constructor (root, runPath, resp) {
     this._resp = resp;
     this._confCache = {};
     this._confRun = {
       pid: process.pid,
       fd: null,
     };
+    this._runPath = runPath;
 
     if (!root) {
       const dirArray = __dirname.split (path.sep);
@@ -231,9 +232,12 @@ module.exports = (root, resp) => {
     return etcInstance;
   }
 
+  // FIXME: replace by XCRAFT_ROOT or something like that
   if (!root && process.env.XCRAFT_ETC) {
     root = process.env.XCRAFT_ETC;
   }
+
+  const runPath = path.join (root, '../var/run');
 
   if (!resp) {
     resp = {
@@ -241,6 +245,6 @@ module.exports = (root, resp) => {
     };
   }
 
-  etcInstance = new Etc (root, resp);
+  etcInstance = new Etc (root, runPath, resp);
   return etcInstance;
 };

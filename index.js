@@ -24,13 +24,13 @@ class Etc {
         __dirname,
         dirArray.slice (0, pos + 1).join (path.sep)
       );
-      this.etcPath = path.join (toolChainDir, 'etc');
+      this._etcPath = path.join (toolChainDir, 'etc');
     } else {
-      this.etcPath = root;
+      this._etcPath = root;
     }
 
-    if (!fs.existsSync (this.etcPath)) {
-      this._resp.log.err (`${this.etcPath} cannot be resolved`);
+    if (!fs.existsSync (this._etcPath)) {
+      this._resp.log.err (`${this._etcPath} cannot be resolved`);
     }
 
     const xConfig = this.load ('xcraft');
@@ -77,7 +77,7 @@ class Etc {
    * @param {Object} [override] - Overload default values.
    */
   createDefault (config, moduleName, override) {
-    var moduleEtc = path.resolve (this.etcPath, moduleName);
+    var moduleEtc = path.resolve (this._etcPath, moduleName);
     xFs.mkdir (moduleEtc);
 
     this._resp.log.info ('Create config file in ' + moduleEtc);
@@ -137,7 +137,7 @@ class Etc {
 
       /* Retrieve the current values if possible. */
       try {
-        var configFile = path.join (self.etcPath, mod, 'config.json');
+        var configFile = path.join (self._etcPath, mod, 'config.json');
         var data = JSON.parse (fs.readFileSync (configFile, 'utf8'));
 
         wizards[mod].forEach (function (item, index) {
@@ -167,7 +167,7 @@ class Etc {
           });
 
           if (hasChanged) {
-            var configFile = path.join (self.etcPath, wiz, 'config.json');
+            var configFile = path.join (self._etcPath, wiz, 'config.json');
             fs.writeFileSync (configFile, JSON.stringify (answers, null, '  '));
           }
 
@@ -181,7 +181,7 @@ class Etc {
   }
 
   load (packageName) {
-    var configFile = path.join (this.etcPath, packageName, 'config.json');
+    var configFile = path.join (this._etcPath, packageName, 'config.json');
 
     /* FIXME: handle fallback to the internal package config entries. */
     try {

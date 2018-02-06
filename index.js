@@ -8,7 +8,16 @@ var xFs = require ('xcraft-core-fs');
 let etcInstance = null;
 
 class Etc {
-  constructor (etcPath, runPath, resp) {
+  constructor (root, resp) {
+    const etcPath = path.join (root, 'etc');
+    const runPath = path.join (root, 'var/run');
+
+    if (!resp) {
+      resp = {
+        log: require ('xcraft-core-log') ('etc'),
+      };
+    }
+
     this._resp = resp;
     this._confCache = {};
     this._confRun = {
@@ -229,25 +238,19 @@ class Etc {
   }
 }
 
-module.exports = (root, resp) => {
+function EtcManager (root, resp) {
   if (etcInstance) {
     return etcInstance;
   }
 
-  // FIXME: replace by XCRAFT_ROOT or something like that
-  if (!root && process.env.XCRAFT_ETC) {
-    root = path.resolve (process.env.XCRAFT_ETC, '..');
+  if (!root && process.env.XCRAFT_ROOT) {
+    root = process.env.XCRAFT_ROOT;
   }
 
-  const etcPath = path.join (root, 'etc');
-  const runPath = path.join (root, 'var/run');
-
-  if (!resp) {
-    resp = {
-      log: require ('xcraft-core-log') ('etc'),
-    };
-  }
-
-  etcInstance = new Etc (etcPath, runPath, resp);
+  etcInstance = new Etc (root, resp);
   return etcInstance;
-};
+}
+
+EtcManager.Etc = Etc;
+
+module.exports = EtcManager;

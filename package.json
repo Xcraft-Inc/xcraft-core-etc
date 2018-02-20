@@ -30,6 +30,6 @@
   },
   "homepage": "https://github.com/Xcraft-Inc/xcraft-core-etc#readme",
   "devDependencies": {
-    "xcraft-dev-rules": "^0.1.4"
+    "xcraft-dev-rules": "^0.2.0"
   }
 }

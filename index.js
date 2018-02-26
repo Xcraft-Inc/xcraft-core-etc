@@ -25,18 +25,7 @@ class Etc {
       fd: null,
     };
     this._runPath = runPath;
-
-    if (!etcPath) {
-      const dirArray = __dirname.split(path.sep);
-      const pos = dirArray.indexOf('toolchain'); /* FIXME: remove this hack */
-      const toolChainDir = path.resolve(
-        __dirname,
-        dirArray.slice(0, pos + 1).join(path.sep)
-      );
-      this._etcPath = path.join(toolChainDir, 'etc');
-    } else {
-      this._etcPath = etcPath;
-    }
+    this._etcPath = etcPath;
 
     if (!fs.existsSync(this._etcPath)) {
       this._resp.log.err(`${this._etcPath} cannot be resolved`);

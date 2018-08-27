@@ -95,11 +95,16 @@ class Etc {
     fs.writeFileSync(fileName, JSON.stringify(defaultConfig, null, '  '));
   }
 
-  createAll(modulePath, filterRegex, overriderFile) {
+  createAll(modulePath, filterRegex, overriderFile, appId) {
     var path = require('path');
     var xFs = require('xcraft-core-fs');
     var xModulesFiles = xFs.ls(modulePath, filterRegex);
-    const overrider = overriderFile ? require(overriderFile) : {};
+
+    let overrider = {};
+    if (overriderFile && appId) {
+      overrider = require(overriderFile);
+      overrider = overrider[appId] ? overrider[appId] : overrider.default;
+    }
 
     xModulesFiles.forEach(mod => {
       var xModule = null;

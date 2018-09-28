@@ -84,7 +84,7 @@ class Etc {
     var fileName = path.join(moduleEtc, 'config.json');
 
     config.forEach(function(def) {
-      if (override && override[def.name]) {
+      if (override && override.hasOwnProperty(def.name)) {
         defaultConfig[def.name] = override[def.name];
       } else if (def.hasOwnProperty('default')) {
         defaultConfig[def.name] = def.default;

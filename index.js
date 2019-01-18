@@ -241,6 +241,10 @@ function EtcManager(root, resp) {
     root = process.env.XCRAFT_ROOT;
   }
 
+  if (!root) {
+    return null;
+  }
+
   etcInstance = new Etc(root, resp);
   return etcInstance;
 }

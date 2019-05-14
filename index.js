@@ -101,9 +101,10 @@ class Etc {
     var xModulesFiles = xFs.ls(modulePath, filterRegex);
 
     let overrider = {};
-    if (overriderFile && appId) {
+    if (overriderFile) {
       overrider = require(overriderFile);
-      overrider = overrider[appId] ? overrider[appId] : overrider.default;
+      overrider =
+        appId && overrider[appId] ? overrider[appId] : overrider.default;
     }
 
     xModulesFiles.forEach(mod => {

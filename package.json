@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "is-running": "^2.1.0",
-    "xcraft-core-fs": "^1.0.1",
+    "xcraft-core-fs": "^2.0.0",
     "xcraft-core-log": "^1.0.0"
   },
   "author": "Samuel Loup & Mathieu Schroeter",

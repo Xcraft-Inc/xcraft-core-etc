@@ -1,6 +1,6 @@
 {
   "name": "xcraft-core-etc",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Xcraft configuration provider",
   "main": "index.js",
   "engines": {

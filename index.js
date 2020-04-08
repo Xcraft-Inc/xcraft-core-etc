@@ -38,13 +38,13 @@ class Etc {
       const runDir = path.join(xConfig.xcraftRoot, `var/run`);
       const daemons = xFs
         .ls(runDir, /^xcraftd.[0-9]+$/)
-        .map(name => path.join(runDir, name));
+        .map((name) => path.join(runDir, name));
 
       daemons
         .filter(
-          file => !isRunning(parseInt(file.replace(/.*\.([0-9]+$)/, '$1')))
+          (file) => !isRunning(parseInt(file.replace(/.*\.([0-9]+$)/, '$1')))
         )
-        .forEach(file => {
+        .forEach((file) => {
           try {
             fs.unlinkSync(file);
           } catch (ex) {
@@ -54,10 +54,10 @@ class Etc {
 
       //FIXME: handle multiple running xcraft's
       daemons
-        .filter(file =>
+        .filter((file) =>
           isRunning(parseInt(file.replace(/.*\.([0-9]+$)/, '$1')))
         )
-        .forEach(file => {
+        .forEach((file) => {
           const config = JSON.parse(fs.readFileSync(file).toString());
           delete config.pid;
           delete config.fd;
@@ -83,7 +83,7 @@ class Etc {
     var defaultConfig = {};
     var fileName = path.join(moduleEtc, 'config.json');
 
-    config.forEach(function(def) {
+    config.forEach(function (def) {
       if (override && override.hasOwnProperty(def.name)) {
         defaultConfig[def.name] = override[def.name];
       } else if (def.hasOwnProperty('default')) {
@@ -107,7 +107,7 @@ class Etc {
         appId && overrider[appId] ? overrider[appId] : overrider.default;
     }
 
-    xModulesFiles.forEach(mod => {
+    xModulesFiles.forEach((mod) => {
       var xModule = null;
       try {
         xModule = require(path.join(modulePath, mod, 'config.js'));
@@ -129,7 +129,7 @@ class Etc {
 
     var xModulesFiles = xFs.ls(modulePath, filterRegex);
 
-    xModulesFiles.forEach(function(mod) {
+    xModulesFiles.forEach(function (mod) {
       var xModule = null;
       try {
         xModule = require(path.join(modulePath, mod, 'config.js'));
@@ -144,7 +144,7 @@ class Etc {
         var configFile = path.join(self._etcPath, mod, 'config.json');
         var data = JSON.parse(fs.readFileSync(configFile, 'utf8'));
 
-        wizards[mod].forEach(function(item, index) {
+        wizards[mod].forEach(function (item, index) {
           wizards[mod][index].default = data[item.name];
         });
       } catch (ex) {
@@ -154,16 +154,16 @@ class Etc {
 
     async.eachSeries(
       Object.keys(wizards),
-      function(wiz, callback) {
+      function (wiz, callback) {
         self._resp.log.info('configure Xcraft (%s)', wiz);
-        wizCallback(wizards[wiz], function(answers) {
+        wizCallback(wizards[wiz], function (answers) {
           var hasChanged = false;
 
           self._resp.log.verb(
             'JSON output:\n' + JSON.stringify(answers, null, '  ')
           );
 
-          Object.keys(answers).forEach(function(item) {
+          Object.keys(answers).forEach(function (item) {
             if (wizards[wiz][item] !== answers[item]) {
               wizards[wiz][item] = answers[item];
               hasChanged = true;
@@ -178,7 +178,7 @@ class Etc {
           callback();
         });
       },
-      function() {
+      function () {
         wizCallback();
       }
     );
@@ -187,7 +187,7 @@ class Etc {
   load(packageName, pid = 0) {
     let configFile;
 
-    const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+    const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 
     if (pid > 0) {
       configFile = path.join(this._runPath, `xcraftd.${pid}`);

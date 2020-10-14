@@ -2,6 +2,7 @@
 
 var path = require('path');
 var fs = require('fs');
+const merge = require('lodash/merge');
 
 var xFs = require('xcraft-core-fs');
 
@@ -66,6 +67,22 @@ class Etc {
     }
   }
 
+  static _writeConfigJSON(config, fileName) {
+    /* Unflat object */
+    const configDeep = {};
+    Object.keys(config).forEach((key) => {
+      const keys = key.split('.');
+      const obj = {};
+      let _obj = obj;
+      for (let i = 0; i < keys.length; ++i) {
+        _obj = _obj[keys[i]] = i === keys.length - 1 ? config[key] : {};
+      }
+      merge(configDeep, obj);
+    });
+
+    fs.writeFileSync(fileName, JSON.stringify(configDeep, null, '  '));
+  }
+
   /**
    * Create the config file for a specific module.
    * A subdirectory is created for the module.
@@ -81,7 +98,6 @@ class Etc {
     this._resp.log.info('Create config file in ' + moduleEtc);
 
     var defaultConfig = {};
-    var fileName = path.join(moduleEtc, 'config.json');
 
     config.forEach(function (def) {
       if (override && override.hasOwnProperty(def.name)) {
@@ -92,7 +108,7 @@ class Etc {
     });
 
     this._resp.log.verb(JSON.stringify(defaultConfig));
-    fs.writeFileSync(fileName, JSON.stringify(defaultConfig, null, '  '));
+    Etc._writeConfigJSON(defaultConfig, path.join(moduleEtc, 'config.json'));
   }
 
   createAll(modulePath, filterRegex, overriderFile, appId) {
@@ -171,8 +187,10 @@ class Etc {
           });
 
           if (hasChanged) {
-            var configFile = path.join(self._etcPath, wiz, 'config.json');
-            fs.writeFileSync(configFile, JSON.stringify(answers, null, '  '));
+            Etc._writeConfigJSON(
+              answers,
+              path.join(self._etcPath, wiz, 'config.json')
+            );
           }
 
           callback();

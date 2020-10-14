@@ -100,8 +100,18 @@ class Etc {
     var defaultConfig = {};
 
     config.forEach(function (def) {
-      if (override && override.hasOwnProperty(def.name)) {
-        defaultConfig[def.name] = override[def.name];
+      let value;
+
+      if (override) {
+        value = override;
+        const keys = def.name.split('.');
+        for (let i = 0; i < keys.length; ++i) {
+          value = value[keys[i]];
+        }
+      }
+
+      if (override && value !== undefined) {
+        defaultConfig[def.name] = value;
       } else if (def.hasOwnProperty('default')) {
         defaultConfig[def.name] = def.default;
       }

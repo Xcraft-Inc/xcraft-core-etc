@@ -1,7 +1,7 @@
 'use strict';
 
 var path = require('path');
-var fs = require('fs');
+const fse = require('fs-extra');
 const merge = require('lodash/merge');
 
 var xFs = require('xcraft-core-fs');
@@ -47,7 +47,7 @@ class Etc {
         )
         .forEach((file) => {
           try {
-            fs.unlinkSync(file);
+            fse.removeSync(file);
           } catch (ex) {
             /* ignore, it's not critical */
           }
@@ -59,7 +59,7 @@ class Etc {
           isRunning(parseInt(file.replace(/.*\.([0-9]+$)/, '$1')))
         )
         .forEach((file) => {
-          const config = JSON.parse(fs.readFileSync(file).toString());
+          const config = JSON.parse(fse.readFileSync(file).toString());
           delete config.pid;
           delete config.fd;
           Object.assign(this._confRun, config);
@@ -80,7 +80,7 @@ class Etc {
       merge(configDeep, obj);
     });
 
-    fs.writeFileSync(fileName, JSON.stringify(configDeep, null, '  '));
+    fse.writeFileSync(fileName, JSON.stringify(configDeep, null, '  '));
   }
 
   /**
@@ -168,7 +168,7 @@ class Etc {
       /* Retrieve the current values if possible. */
       try {
         var configFile = path.join(self._etcPath, mod, 'config.json');
-        var data = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+        var data = JSON.parse(fse.readFileSync(configFile, 'utf8'));
 
         wizards[mod].forEach(function (item, index) {
           wizards[mod][index].default = data[item.name];
@@ -215,7 +215,7 @@ class Etc {
   load(packageName, pid = 0) {
     let configFile;
 
-    const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+    const read = (file) => JSON.parse(fse.readFileSync(file, 'utf8'));
 
     if (pid > 0) {
       configFile = path.join(this._runPath, `xcraftd.${pid}`);
@@ -248,16 +248,16 @@ class Etc {
     if (!this._confRun.fd) {
       const run = path.join(this._runPath, `xcraftd.${this._confRun.pid}`);
 
-      this._confRun.fd = fs.openSync(run, 'w+');
+      this._confRun.fd = fse.openSync(run, 'w+');
 
       process.on('exit', () => {
-        fs.closeSync(this._confRun.fd);
-        fs.unlinkSync(run);
+        fse.closeSync(this._confRun.fd);
+        fse.removeSync(run);
       });
     }
 
     this._confRun[packageName] = config;
-    fs.writeSync(this._confRun.fd, JSON.stringify(this._confRun, null, 2));
+    fse.writeSync(this._confRun.fd, JSON.stringify(this._confRun, null, 2));
   }
 }
 

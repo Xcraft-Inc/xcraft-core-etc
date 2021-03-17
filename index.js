@@ -28,7 +28,7 @@ class Etc {
     this._runPath = runPath;
     this._etcPath = etcPath;
 
-    if (!fs.existsSync(this._etcPath)) {
+    if (!fse.existsSync(this._etcPath)) {
       this._resp.log.err(`${this._etcPath} cannot be resolved`);
     }
 

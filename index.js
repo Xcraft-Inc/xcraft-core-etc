@@ -106,6 +106,9 @@ class Etc {
         value = override;
         const keys = def.name.split('.');
         for (let i = 0; i < keys.length; ++i) {
+          if (value[keys[i]] === undefined && keys.length > 1) {
+            value[keys[i]] = i < keys.length - 1 ? {} : undefined;
+          }
           value = value[keys[i]];
         }
       }

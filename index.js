@@ -260,7 +260,7 @@ class Etc {
     }
 
     this._confRun[packageName] = config;
-    fse.writeSync(this._confRun.fd, JSON.stringify(this._confRun, null, 2));
+    fse.writeSync(this._confRun.fd, JSON.stringify(this._confRun, null, 2), 0);
   }
 }
 

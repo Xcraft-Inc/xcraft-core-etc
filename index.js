@@ -215,6 +215,22 @@ class Etc {
     );
   }
 
+  read(packageName) {
+    let configFile;
+
+    const read = (file) => JSON.parse(fse.readFileSync(file, 'utf8'));
+
+    /* FIXME: handle fallback to the internal package config entries. */
+    try {
+      configFile = path.join(this._etcPath, packageName, 'config.json');
+
+      this._resp.log.verb('Read config file from ' + configFile);
+      return read(configFile);
+    } catch (ex) {
+      return null;
+    }
+  }
+
   load(packageName, pid = 0) {
     let configFile;
 

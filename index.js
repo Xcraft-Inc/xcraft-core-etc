@@ -131,6 +131,8 @@ class Etc {
 
     let overrider = {};
     if (overriderFile) {
+      const clearModule = require('clear-module');
+      clearModule(overriderFile);
       overrider = require(overriderFile);
       overrider =
         appId && overrider[appId] ? overrider[appId] : overrider.default;

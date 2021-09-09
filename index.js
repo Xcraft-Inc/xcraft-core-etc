@@ -248,7 +248,6 @@ class Etc {
       configFile = path.join(this._etcPath, packageName, 'config.json');
 
       if (!this._confCache[packageName]) {
-        this._resp.log.verb('Load config file from ' + configFile);
         this._confCache[packageName] = read(configFile);
       }
 

@@ -29,7 +29,7 @@ class Etc {
     this._etcPath = etcPath;
 
     if (!fse.existsSync(this._etcPath)) {
-      this._resp.log.err(`${this._etcPath} cannot be resolved`);
+      console.error(`${this._etcPath} cannot be resolved`);
     }
 
     const xConfig = this.load('xcraft');

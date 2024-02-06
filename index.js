@@ -15,7 +15,13 @@ class Etc {
 
     if (!resp) {
       resp = {
-        log: require('xcraft-core-log')('etc'),
+        log: {
+          verb: (...args) => console.log(...args),
+          info: (...args) => console.log(...args),
+          warn: (...args) => console.error(...args),
+          err: (...args) => console.error(...args),
+          dbg: (...args) => console.log(...args),
+        },
       };
     }
 

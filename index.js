@@ -130,18 +130,30 @@ class Etc {
     Etc._writeConfigJSON(defaultConfig, path.join(moduleEtc, 'config.json'));
   }
 
-  createAll(modulePath, filterRegex, overriderFile, appId) {
+  createAll(modulePath, filterRegex, overriders, appId) {
     var path = require('path');
     var xFs = require('xcraft-core-fs');
     var xModulesFiles = xFs.ls(modulePath, filterRegex);
 
-    let overrider = {};
-    if (overriderFile) {
-      const clearModule = require('clear-module');
-      clearModule(overriderFile);
-      overrider = require(overriderFile);
-      overrider =
-        appId && overrider[appId] ? overrider[appId] : overrider.default;
+    if (overriders && !Array.isArray(overriders)) {
+      overriders = [overriders];
+    }
+
+    let overrides = {};
+    if (overriders) {
+      for (let overrider of overriders) {
+        if (fse.existsSync(overrider)) {
+          const clearModule = require('clear-module');
+          clearModule(overrider);
+          overrider = require(overrider);
+          mergeOverloads(
+            overrides,
+            appId && overrider[appId] ? overrider[appId] : overrider.default
+          );
+        } else {
+          mergeOverloads(overrides, overrider);
+        }
+      }
     }
 
     xModulesFiles.forEach((mod) => {
@@ -152,7 +164,7 @@ class Etc {
         return;
       }
 
-      this.createDefault(xModule, mod, overrider[mod]);
+      this.createDefault(xModule, mod, overrides[mod]);
     });
   }
 

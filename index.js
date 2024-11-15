@@ -120,7 +120,20 @@ class Etc {
         }
       }
 
-      if (override && value !== undefined) {
+      /* The override is used in case of:
+       *  1. value is not undefined
+       *  2. value is not -0
+       * The -0 number is used in order to ensure that the config uses the default
+       * value provided in the module's config.js file. The -0 value is interesting
+       * because it's mostly useless and it can be used with JSON. In Javascript,
+       * 0 === -0 is true. In order to detect -0, the trick is to compare for
+       * Infinity because 1/0 !== 1/-0
+       */
+      if (
+        override &&
+        value !== undefined &&
+        !(value === 0 && 1 / 0 !== 1 / value) // Infinity !== -Infinity
+      ) {
         defaultConfig[def.name] = value;
       } else if (def.hasOwnProperty('default')) {
         defaultConfig[def.name] = def.default;

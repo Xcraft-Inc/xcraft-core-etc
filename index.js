@@ -158,7 +158,7 @@ class Etc {
       for (let overrider of overriders) {
         if (fse.existsSync(overrider)) {
           const clearModule = require('clear-module');
-          clearModule(overrider);
+          clearModule.single(overrider);
           overrider = require(overrider);
           mergeOverloads(
             overrides,

@@ -15,12 +15,13 @@ class Etc {
     const runPath = path.join(root, 'var/run');
 
     if (!resp) {
+      const level = parseInt(process.env.XCRAFT_LOG || 2);
       resp = {
         log: {
-          verb: (...args) => console.log(...args),
-          info: (...args) => console.log(...args),
-          warn: (...args) => console.error(...args),
-          err: (...args) => console.error(...args),
+          verb: (...args) => level === 0 && console.log(...args),
+          info: (...args) => level <= 1 && console.log(...args),
+          warn: (...args) => level <= 2 && console.error(...args),
+          err: (...args) => level <= 3 && console.error(...args),
           dbg: (...args) => console.log(...args),
         },
       };

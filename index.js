@@ -1,10 +1,10 @@
 'use strict';
 
-var path = require('path');
+const path = require('node:path');
 const fse = require('fs-extra');
 const merge = require('lodash/merge');
 
-var xFs = require('xcraft-core-fs');
+const xFs = require('xcraft-core-fs');
 const {mergeOverloads} = require('xcraft-core-utils/lib/modules.js');
 
 let etcInstance = null;
@@ -145,8 +145,6 @@ class Etc {
   }
 
   createAll(modulePath, filterRegex, overriders, appId) {
-    var path = require('path');
-    var xFs = require('xcraft-core-fs');
     var xModulesFiles = xFs.ls(modulePath, filterRegex);
 
     if (overriders && !Array.isArray(overriders)) {

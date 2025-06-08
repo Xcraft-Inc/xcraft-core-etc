@@ -88,7 +88,7 @@ class Etc {
       merge(configDeep, obj);
     });
 
-    fse.writeFileSync(fileName, JSON.stringify(configDeep, null, '  '));
+    fse.writeJSONSync(fileName, configDeep);
   }
 
   /**
@@ -204,7 +204,7 @@ class Etc {
       /* Retrieve the current values if possible. */
       try {
         var configFile = path.join(self._etcPath, mod, 'config.json');
-        var data = JSON.parse(fse.readFileSync(configFile, 'utf8'));
+        var data = fse.readJSONSync(configFile);
 
         wizards[mod].forEach(function (item, index) {
           wizards[mod][index].default = data[item.name];
@@ -251,7 +251,7 @@ class Etc {
   read(packageName) {
     let configFile;
 
-    const read = (file) => JSON.parse(fse.readFileSync(file, 'utf8'));
+    const read = (file) => fse.readJSONSync(file);
 
     /* FIXME: handle fallback to the internal package config entries. */
     try {
@@ -267,7 +267,7 @@ class Etc {
   load(packageName, pid = 0) {
     let configFile;
 
-    const read = (file) => JSON.parse(fse.readFileSync(file, 'utf8'));
+    const read = (file) => fse.readJSONSync(file);
 
     if (pid > 0) {
       configFile = path.join(this._runPath, `xcraftd.${pid}`);

@@ -10,10 +10,16 @@ const {mergeOverloads} = require('xcraft-core-utils/lib/modules.js');
 let etcInstance = null;
 
 class Etc {
-  constructor(root, resp) {
-    const etcPath = path.join(root, 'etc');
-    const runPath = path.join(root, 'var/run');
+  _resp;
+  _confCache = {};
+  _confRun = {
+    pid: process.pid,
+    fd: null,
+  };
+  _runPath;
+  _etcPath;
 
+  constructor(root, resp) {
     if (!resp) {
       const level = parseInt(process.env.XCRAFT_LOG || 2);
       resp = {
@@ -28,51 +34,48 @@ class Etc {
     }
 
     this._resp = resp;
-    this._confCache = {};
-    this._confRun = {
-      pid: process.pid,
-      fd: null,
-    };
-    this._runPath = runPath;
-    this._etcPath = etcPath;
+    this._runPath = path.join(root, 'var/run');
+    this._etcPath = path.join(root, 'etc');
 
     if (!fse.existsSync(this._etcPath)) {
       console.error(`${this._etcPath} cannot be resolved`);
     }
 
     const xConfig = this.load('xcraft');
-    if (xConfig) {
-      /* Clean obsolete daemon files */
-      const isRunning = require('is-running');
-      const runDir = path.join(xConfig.xcraftRoot, `var/run`);
-      const daemons = xFs
-        .ls(runDir, /^xcraftd.[0-9]+$/)
-        .map((name) => path.join(runDir, name));
-
-      daemons
-        .filter(
-          (file) => !isRunning(parseInt(file.replace(/.*\.([0-9]+$)/, '$1')))
-        )
-        .forEach((file) => {
-          try {
-            fse.removeSync(file);
-          } catch (ex) {
-            /* ignore, it's not critical */
-          }
-        });
-
-      //FIXME: handle multiple running xcraft's
-      daemons
-        .filter((file) =>
-          isRunning(parseInt(file.replace(/.*\.([0-9]+$)/, '$1')))
-        )
-        .forEach((file) => {
-          const config = JSON.parse(fse.readFileSync(file).toString());
-          delete config.pid;
-          delete config.fd;
-          Object.assign(this._confRun, config);
-        });
+    if (!xConfig) {
+      return;
     }
+
+    /* Clean obsolete daemon files */
+    const isRunning = require('is-running');
+    const runDir = path.join(xConfig.xcraftRoot, `var/run`);
+    const daemons = xFs
+      .ls(runDir, /^xcraftd.[0-9]+$/)
+      .map((name) => path.join(runDir, name));
+
+    daemons
+      .filter(
+        (file) => !isRunning(parseInt(file.replace(/.*\.([0-9]+$)/, '$1')))
+      )
+      .forEach((file) => {
+        try {
+          fse.removeSync(file);
+        } catch (ex) {
+          /* ignore, it's not critical */
+        }
+      });
+
+    //FIXME: handle multiple running xcraft's
+    daemons
+      .filter((file) =>
+        isRunning(parseInt(file.replace(/.*\.([0-9]+$)/, '$1')))
+      )
+      .forEach((file) => {
+        const config = JSON.parse(fse.readFileSync(file).toString());
+        delete config.pid;
+        delete config.fd;
+        Object.assign(this._confRun, config);
+      });
   }
 
   static _writeConfigJSON(config, fileName) {
@@ -100,12 +103,12 @@ class Etc {
    * @param {Object} [override] - Overload default values.
    */
   createDefault(config, moduleName, override) {
-    var moduleEtc = path.resolve(this._etcPath, moduleName);
+    const moduleEtc = path.resolve(this._etcPath, moduleName);
     xFs.mkdir(moduleEtc);
 
     this._resp.log.info('Create config file in ' + moduleEtc);
 
-    var defaultConfig = {};
+    const defaultConfig = {};
 
     config.forEach(function (def) {
       let value;
@@ -146,7 +149,7 @@ class Etc {
   }
 
   createAll(modulePath, filterRegex, overriders, appId) {
-    var xModulesFiles = xFs.ls(modulePath, filterRegex);
+    const xModulesFiles = xFs.ls(modulePath, filterRegex);
 
     if (overriders && !Array.isArray(overriders)) {
       overriders = [overriders];
@@ -170,7 +173,7 @@ class Etc {
     }
 
     xModulesFiles.forEach((mod) => {
-      var xModule = null;
+      let xModule = null;
       try {
         xModule = require(path.join(modulePath, mod, 'config.js'));
       } catch (ex) {
@@ -182,17 +185,11 @@ class Etc {
   }
 
   configureAll(modulePath, filterRegex, wizCallback) {
-    const self = this;
+    const wizards = {};
+    const xModulesFiles = xFs.ls(modulePath, filterRegex);
 
-    var async = require('async');
-    var path = require('path');
-    var xFs = require('xcraft-core-fs');
-    var wizards = {};
-
-    var xModulesFiles = xFs.ls(modulePath, filterRegex);
-
-    xModulesFiles.forEach(function (mod) {
-      var xModule = null;
+    for (const mod of xModulesFiles) {
+      let xModule = null;
       try {
         xModule = require(path.join(modulePath, mod, 'config.js'));
       } catch (ex) {
@@ -203,8 +200,8 @@ class Etc {
 
       /* Retrieve the current values if possible. */
       try {
-        var configFile = path.join(self._etcPath, mod, 'config.json');
-        var data = fse.readJSONSync(configFile);
+        const configFile = path.join(this._etcPath, mod, 'config.json');
+        const data = fse.readJSONSync(configFile);
 
         wizards[mod].forEach(function (item, index) {
           wizards[mod][index].default = data[item.name];
@@ -212,8 +209,10 @@ class Etc {
       } catch (ex) {
         /* ignore all exceptions */
       }
-    });
+    }
 
+    const self = this;
+    const async = require('async');
     async.eachSeries(
       Object.keys(wizards),
       function (wiz, callback) {

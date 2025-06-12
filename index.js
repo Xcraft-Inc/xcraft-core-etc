@@ -184,8 +184,9 @@ class Etc {
     });
   }
 
-  configureAll(modulePath, filterRegex, wizCallback) {
+  async configureAll(modulePath, filterRegex, wizCallback) {
     const wizards = {};
+    const expected = {};
     const xModulesFiles = xFs.ls(modulePath, filterRegex);
 
     for (const mod of xModulesFiles) {
@@ -204,29 +205,39 @@ class Etc {
         const data = fse.readJSONSync(configFile);
 
         wizards[mod].forEach(function (item, index) {
-          wizards[mod][index].default = data[item.name];
+          const names = item.name.split('.');
+          wizards[mod][index].default = names.reduce((obj, name) => {
+            obj = obj[name];
+            return obj;
+          }, data);
         });
       } catch (ex) {
         /* ignore all exceptions */
       }
+
+      expected[mod] = wizards[mod].reduce((obj, {name, default: def}) => {
+        obj[name] = def;
+        return obj;
+      }, {});
     }
 
-    const self = this;
-    const async = require('async');
-    async.eachSeries(
-      Object.keys(wizards),
-      function (wiz, callback) {
-        self._resp.log.info('configure Xcraft (%s)', wiz);
-        wizCallback(wizards[wiz], function (answers) {
-          var hasChanged = false;
+    for (const wiz of Object.keys(wizards)) {
+      this._resp.log.info('configure Xcraft (%s)', wiz);
 
-          self._resp.log.verb(
+      await new Promise((resolve) => {
+        wizCallback(wizards[wiz], (answers) => {
+          let hasChanged = false;
+
+          this._resp.log.verb(
             'JSON output:\n' + JSON.stringify(answers, null, '  ')
           );
 
           Object.keys(answers).forEach(function (item) {
-            if (wizards[wiz][item] !== answers[item]) {
-              wizards[wiz][item] = answers[item];
+            const isDifferent = Array.isArray(expected[wiz][item])
+              ? expected[wiz][item].join() !== answers[item].join()
+              : expected[wiz][item] !== answers[item];
+            if (isDifferent) {
+              expected[wiz][item] = answers[item];
               hasChanged = true;
             }
           });
@@ -234,17 +245,16 @@ class Etc {
           if (hasChanged) {
             Etc._writeConfigJSON(
               answers,
-              path.join(self._etcPath, wiz, 'config.json')
+              path.join(this._etcPath, wiz, 'config.json')
             );
           }
 
-          callback();
+          resolve();
         });
-      },
-      function () {
-        wizCallback();
-      }
-    );
+      });
+    }
+
+    wizCallback();
   }
 
   read(packageName) {

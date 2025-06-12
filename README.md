@@ -43,6 +43,8 @@ Le système supporte plusieurs niveaux de configuration :
 
 Les configurations runtime ont la priorité sur les configurations persistantes.
 
+Le fichier `config.js` (à la racine des modules) contient des définitions **inquirer.js** où seules les paramètres `name` et `default` sont pris en compte ici.
+
 ## Exemples d'utilisation
 
 ### Initialisation du gestionnaire de configuration
@@ -54,8 +56,6 @@ const xEtc = require('xcraft-core-etc')();
 ```
 
 ### Création d'une configuration par défaut pour un module
-
-Ce fichier `config.js` (à la racine du module) contient des définitions **inquirer.js** où seules les paramètres `name` et `default` sont pris en compte.
 
 ```javascript
 const config = [

@@ -48,12 +48,14 @@ Les configurations runtime ont la priorité sur les configurations persistantes.
 ### Initialisation du gestionnaire de configuration
 
 ```javascript
-const etc = require('xcraft-core-etc')('/chemin/vers/racine/projet');
+const xEtc = require('xcraft-core-etc')('/chemin/vers/racine/projet');
 // ou utiliser la variable d'environnement XCRAFT_ROOT
-const etc = require('xcraft-core-etc')();
+const xEtc = require('xcraft-core-etc')();
 ```
 
 ### Création d'une configuration par défaut pour un module
+
+Ce fichier `config.js` (à la racine du module) contient des définitions **inquirer.js** où seules les paramètres `name` et `default` sont pris en compte.
 
 ```javascript
 const config = [
@@ -71,13 +73,13 @@ const config = [
   },
 ];
 
-etc.createDefault(config, 'mon-module');
+xEtc.createDefault(config, 'mon-module');
 ```
 
 ### Chargement d'une configuration
 
 ```javascript
-const config = etc.load('mon-module');
+const config = xEtc.load('mon-module');
 console.log(config.database.host); // 'localhost'
 console.log(config.database.port); // 5432
 ```
@@ -85,7 +87,7 @@ console.log(config.database.port); // 5432
 ### Sauvegarde d'une configuration runtime
 
 ```javascript
-etc.saveRun('mon-module', {
+xEtc.saveRun('mon-module', {
   database: {
     host: 'production-server',
     port: 5433,
@@ -107,7 +109,7 @@ const overrides = {
   },
 };
 
-etc.createAll('/path/to/modules', /^xcraft-/, overrides, 'myApp');
+xEtc.createAll('/path/to/modules', /^xcraft-/, overrides, 'myApp');
 ```
 
 ### Gestion des valeurs spéciales (-0)
@@ -119,7 +121,7 @@ const overrides = {
   },
 };
 
-etc.createDefault(config, 'mon-module', overrides);
+xEtc.createDefault(config, 'mon-module', overrides);
 // La valeur -0 sera ignorée et la valeur par défaut sera utilisée
 ```
 

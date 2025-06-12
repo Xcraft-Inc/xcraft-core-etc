@@ -133,7 +133,6 @@ xEtc.createDefault(config, 'mon-module', overrides);
 - **fs-extra** : Opérations avancées sur le système de fichiers (lecture/écriture JSON, gestion des fichiers)
 - **lodash/merge** : Fusion profonde d'objets de configuration
 - **clear-module** : Nettoyage du cache des modules pour recharger les configurations
-- **async** : Gestion asynchrone pour la configuration de plusieurs modules
 
 ## Variables d'environnement
 

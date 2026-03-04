@@ -1,8 +1,8 @@
-# 📘 Documentation du module xcraft-core-etc
+# 📘 xcraft-core-etc
 
 ## Aperçu
 
-Le module `xcraft-core-etc` est un gestionnaire de configuration pour l'écosystème Xcraft. Il permet de créer, lire, charger et sauvegarder des configurations pour différents modules du framework. Ce module est essentiel pour la gestion centralisée des paramètres de configuration dans une application Xcraft.
+Le module `xcraft-core-etc` est le gestionnaire de configuration centralisé de l'écosystème Xcraft. Il gère la création, la lecture, le chargement et la sauvegarde des configurations pour les différents modules du framework. Il prend en charge plusieurs niveaux de configuration (valeurs par défaut, persistantes et runtime) et assure le nettoyage automatique des fichiers temporaires des processus terminés.
 
 ## Sommaire
 
@@ -12,71 +12,62 @@ Le module `xcraft-core-etc` est un gestionnaire de configuration pour l'écosyst
 - [Interactions avec d'autres modules](#interactions-avec-dautres-modules)
 - [Variables d'environnement](#variables-denvironnement)
 - [Détails des sources](#détails-des-sources)
+- [Licence](#licence)
 
 ## Structure du module
 
-- **Classe `Etc`** : Classe principale qui gère les configurations
-- **Fonction `EtcManager`** : Factory pour obtenir une instance unique (singleton) de la classe `Etc`
+- **Classe `Etc`** : Classe principale qui gère les opérations de configuration (lecture, écriture, cache, runtime).
+- **Fonction `EtcManager`** : Factory singleton qui garantit l'unicité de l'instance `Etc` et expose `EtcManager.Etc` pour les usages avancés.
 
 ## Fonctionnement global
 
-Le module fonctionne selon ces principes :
+Le module repose sur une organisation du système de fichiers bien définie :
 
-1. **Initialisation** : Création d'une instance unique de gestionnaire de configuration
-2. **Stockage des configurations** :
-   - Les configurations sont stockées dans un dossier `etc/` à la racine du projet
-   - Chaque module a son propre sous-dossier avec un fichier `config.json`
-3. **Configuration runtime** :
-   - Les configurations temporaires sont stockées dans `var/run/`
-   - Un fichier spécial `xcraftd.[PID]` contient les configurations runtime
-4. **Cache** : Les configurations sont mises en cache pour optimiser les performances
+- `etc/[module]/config.json` — configuration persistante de chaque module
+- `var/run/xcraftd.[PID]` — configuration runtime du processus courant
 
-Le module gère également le nettoyage automatique des fichiers de configuration temporaires des processus qui ne sont plus en cours d'exécution, utilisant la bibliothèque `is-running` pour vérifier l'état des processus.
+### Niveaux de configuration
 
-### Gestion des surcharges
+1. **Valeurs par défaut** : définies dans les fichiers `config.js` de chaque module (format inquirer.js, seuls `name` et `default` sont exploités).
+2. **Configuration persistante** : stockée dans `etc/[module]/config.json`, écrite par `createDefault` ou `createAll`.
+3. **Configuration runtime** : stockée dans `var/run/xcraftd.[PID]`, prioritaire sur la configuration persistante lors du chargement.
 
-Le système supporte plusieurs niveaux de configuration :
+### Cache et nettoyage
 
-- **Valeurs par défaut** : Définies dans les fichiers `config.js` des modules
-- **Configuration persistante** : Stockée dans `etc/[module]/config.json`
-- **Configuration runtime** : Stockée temporairement dans `var/run/xcraftd.[PID]`
+Les configurations sont mises en cache lors du premier `load()` pour optimiser les accès répétés. À l'initialisation, le constructeur scanne le dossier `var/run/` et supprime les fichiers `xcraftd.[PID]` dont le processus correspondant n'est plus actif (via la bibliothèque `is-running`). Les fichiers des processus encore vivants sont fusionnés dans `_confRun` pour être appliqués par `load()`.
 
-Les configurations runtime ont la priorité sur les configurations persistantes.
+À la fermeture du processus courant, le fichier runtime est automatiquement supprimé via un handler `process.on('exit', ...)` enregistré lors du premier appel à `saveRun()`.
 
-Le fichier `config.js` (à la racine des modules) contient des définitions **inquirer.js** où seules les paramètres `name` et `default` sont pris en compte ici.
+### Valeur spéciale `-0`
+
+Dans les objets de surcharge (`override`), la valeur `-0` est une convention permettant de forcer l'utilisation de la valeur par défaut du module en ignorant explicitement la surcharge. Elle est détectée via le test `1/0 !== 1/value` (Infinity !== -Infinity).
 
 ## Exemples d'utilisation
 
-### Initialisation du gestionnaire de configuration
+### Initialisation du gestionnaire
 
 ```javascript
-const xEtc = require('xcraft-core-etc')('/chemin/vers/racine/projet');
-// ou utiliser la variable d'environnement XCRAFT_ROOT
+// Via la variable d'environnement XCRAFT_ROOT
 const xEtc = require('xcraft-core-etc')();
+
+// Ou en fournissant explicitement le chemin racine
+const xEtc = require('xcraft-core-etc')('/chemin/vers/racine');
 ```
 
-### Création d'une configuration par défaut pour un module
+### Créer la configuration par défaut d'un module
 
 ```javascript
 const config = [
-  {
-    name: 'database.host',
-    default: 'localhost',
-  },
-  {
-    name: 'database.port',
-    default: 5432,
-  },
-  {
-    name: 'database.ssl',
-    default: false,
-  },
+  {name: 'database.host', default: 'localhost'},
+  {name: 'database.port', default: 5432},
+  {name: 'database.ssl', default: false},
 ];
 
 xEtc.createDefault(config, 'mon-module');
+// Crée etc/mon-module/config.json avec les valeurs par défaut
 ```
 
-### Chargement d'une configuration
+### Charger une configuration
 
 ```javascript
 const config = xEtc.load('mon-module');
@@ -84,95 +75,96 @@ console.log(config.database.host); // 'localhost'
 console.log(config.database.port); // 5432
 ```
 
-### Sauvegarde d'une configuration runtime
+### Sauvegarder une configuration runtime
 
 ```javascript
 xEtc.saveRun('mon-module', {
-  database: {
-    host: 'production-server',
-    port: 5433,
-  },
-  temporaryFlag: true,
+  database: {host: 'production-server', port: 5433},
   sessionId: 'abc123',
 });
+// Les valeurs seront fusionnées lors du prochain load('mon-module')
 ```
 
-### Création de configurations pour plusieurs modules
+### Créer les configurations de plusieurs modules
 
 ```javascript
 const overrides = {
-  'module-a': {
-    'option.enabled': true,
-  },
-  'module-b': {
-    'server.port': 8080,
-  },
+  'module-a': {'option.enabled': true},
+  'module-b': {'server.port': 8080},
 };
 
 xEtc.createAll('/path/to/modules', /^xcraft-/, overrides, 'myApp');
 ```
 
-### Gestion des valeurs spéciales (-0)
+### Forcer la valeur par défaut avec `-0`
 
 ```javascript
 const overrides = {
   'mon-module': {
-    'option.port': -0, // Force l'utilisation de la valeur par défaut
+    'option.port': -0, // Ignore la surcharge, utilise le défaut du config.js
   },
 };
 
 xEtc.createDefault(config, 'mon-module', overrides);
-// La valeur -0 sera ignorée et la valeur par défaut sera utilisée
 ```
 
 ## Interactions avec d'autres modules
 
-- **[xcraft-core-fs]** : Utilisé pour les opérations sur le système de fichiers et le listage des modules
-- **[xcraft-core-utils]** : Utilisé pour la fusion des configurations via `mergeOverloads`
-- **is-running** : Vérifie si un processus est en cours d'exécution pour le nettoyage des fichiers temporaires
-- **fs-extra** : Opérations avancées sur le système de fichiers (lecture/écriture JSON, gestion des fichiers)
-- **lodash/merge** : Fusion profonde d'objets de configuration
-- **clear-module** : Nettoyage du cache des modules pour recharger les configurations
+- **[xcraft-core-fs]** : Listage des fichiers de modules et création de répertoires.
+- **[xcraft-core-utils]** : Fusion des surcharges de configuration via `mergeOverloads`.
+- **is-running** : Vérification de l'état des processus pour le nettoyage des fichiers temporaires.
+- **fs-extra** : Opérations avancées sur le système de fichiers (lecture/écriture JSON, troncature).
+- **lodash/merge** : Fusion profonde d'objets de configuration.
+- **clear-module** : Invalidation du cache Node.js pour recharger les fichiers `config.js` des modules.
 
 ## Variables d'environnement
 
 | Variable      | Description                                   | Exemple       | Valeur par défaut |
 | ------------- | --------------------------------------------- | ------------- | ----------------- |
-| `XCRAFT_ROOT` | Chemin racine du projet Xcraft                | `/opt/xcraft` | -                 |
+| `XCRAFT_ROOT` | Chemin racine du projet Xcraft                | `/opt/xcraft` | —                 |
 | `XCRAFT_LOG`  | Niveau de log (0=verb, 1=info, 2=warn, 3=err) | `2`           | `2`               |
 
 ## Détails des sources
 
 ### `index.js`
 
-Ce fichier contient la classe principale `Etc` et la fonction factory `EtcManager`. La classe `Etc` fournit les méthodes suivantes :
+Ce fichier expose la classe `Etc` et la factory `EtcManager`.
 
-#### Méthodes publiques
+#### Classe `Etc`
 
-- **`constructor(root, resp)`** — Initialise le gestionnaire avec le chemin racine et un objet de réponse pour les logs. Vérifie l'existence du dossier `etc/` et nettoie automatiquement les fichiers de démon obsolètes des processus terminés.
-- **`createDefault(config, moduleName, override)`** — Crée un fichier de configuration par défaut pour un module spécifique. Prend en charge les valeurs par défaut et les surcharges. Gère la valeur spéciale `-0` qui force l'utilisation de la valeur par défaut du module.
-- **`createAll(modulePath, filterRegex, overriders, appId)`** — Crée des configurations pour tous les modules correspondant à un filtre. Supporte les surcharges multiples et les configurations spécifiques par application.
-- **`configureAll(modulePath, filterRegex, wizCallback)`** — Configure tous les modules avec un assistant interactif. Charge les valeurs existantes et permet leur modification via un callback.
-- **`read(packageName)`** — Lit un fichier de configuration sans mise en cache. Utilisé pour des lectures ponctuelles.
-- **`load(packageName, pid = 0)`** — Charge une configuration avec mise en cache. Fusionne automatiquement les configurations runtime si elles existent. Peut charger la configuration d'un processus spécifique via son PID.
-- **`saveRun(packageName, config)`** — Sauvegarde une configuration runtime dans un fichier temporaire. Crée automatiquement le fichier de runtime au premier appel et configure le nettoyage à la fermeture du processus.
+##### Méthodes publiques
 
-#### Méthodes statiques
+- **`constructor(root, resp)`** — Initialise le gestionnaire avec le chemin racine et un objet de réponse pour les logs. Si `resp` est absent, un logger minimal est créé à partir du niveau `XCRAFT_LOG`. Vérifie l'existence du dossier `etc/`, nettoie les fichiers de démon obsolètes dans `var/run/` et fusionne les configurations runtime des processus encore actifs.
 
-- **`_writeConfigJSON(config, fileName)`** — Écrit un objet de configuration dans un fichier JSON, en transformant un objet plat (avec des clés séparées par des points) en objet profond hiérarchique.
+- **`createDefault(config, moduleName, override)`** — Crée le fichier `etc/[moduleName]/config.json` à partir d'un tableau de définitions inquirer.js. Les surcharges fournies dans `override` sont appliquées sauf si leur valeur est `-0` (convention pour forcer le défaut).
 
-### `EtcManager`
+- **`createAll(modulePath, filterRegex, overriders, appId)`** — Parcourt les modules du chemin `modulePath` correspondant à `filterRegex`, charge leur `config.js` et appelle `createDefault` pour chacun. Les surcharges peuvent être un objet direct, un chemin vers un fichier JS ou un tableau de ceux-ci ; elles sont fusionnées via `mergeOverloads` et filtrées selon `appId` si fourni.
 
-La fonction `EtcManager` est une factory qui garantit qu'une seule instance de `Etc` existe à la fois (pattern singleton). Elle prend en charge:
+- **`configureAll(modulePath, filterRegex, wizCallback)`** — Configure interactivement tous les modules via un callback assistant (`wizCallback`). Charge les valeurs actuelles depuis les fichiers existants pour préremplir les valeurs par défaut, puis persiste les modifications si des changements sont détectés.
 
-- La réutilisation d'une instance existante
-- L'utilisation automatique de `XCRAFT_ROOT` comme chemin racine par défaut
-- La création d'une nouvelle instance si nécessaire
-- Retourne `null` si aucun chemin racine n'est fourni
+- **`read(packageName)`** — Lit et retourne directement le contenu de `etc/[packageName]/config.json` sans mise en cache. Retourne `null` si le fichier est absent.
 
-La propriété `EtcManager.Etc` expose la classe `Etc` pour des utilisations avancées.
+- **`load(packageName, pid = 0)`** — Charge la configuration d'un module avec mise en cache. Si `pid > 0`, lit le fichier runtime `var/run/xcraftd.[pid]` et retourne la section correspondant à `packageName`. Sinon, charge depuis `etc/`, met en cache, puis fusionne les éventuelles valeurs runtime présentes dans `_confRun`. Retourne `null` si le fichier est absent.
 
-_Cette documentation a été mise à jour automatiquement._
+- **`saveRun(packageName, config)`** — Sauvegarde une configuration runtime dans `var/run/xcraftd.[PID]`. Crée le fichier au premier appel et enregistre un handler `process.on('exit')` pour le supprimer à la fermeture. Chaque appel réécrit le fichier complet (troncature + réécriture) pour inclure toutes les sections runtime connues.
+
+##### Méthode statique privée
+
+- **`_writeConfigJSON(config, fileName)`** — Convertit un objet plat dont les clés utilisent la notation pointée (ex. `"database.host"`) en objet hiérarchique profond, puis l'écrit en JSON dans `fileName`.
+
+#### `EtcManager`
+
+Fonction factory qui implémente le pattern singleton : si une instance existe déjà, elle est retournée directement. Sinon, elle utilise `root` ou `XCRAFT_ROOT` comme chemin racine, crée une nouvelle instance `Etc` et la mémorise. Retourne `null` si aucun chemin racine n'est disponible.
+
+`EtcManager.Etc` expose la classe `Etc` pour les cas nécessitant des instances indépendantes.
+
+## Licence
+
+Ce module est distribué sous [licence MIT](./LICENSE).
+
+---
+
+_Ce contenu a été généré par IA_
 
 [xcraft-core-fs]: https://github.com/Xcraft-Inc/xcraft-core-fs
 [xcraft-core-utils]: https://github.com/Xcraft-Inc/xcraft-core-utils

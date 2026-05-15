@@ -71,10 +71,14 @@ class Etc {
         isRunning(parseInt(file.replace(/.*\.([0-9]+$)/, '$1')))
       )
       .forEach((file) => {
-        const config = JSON.parse(fse.readFileSync(file).toString());
-        delete config.pid;
-        delete config.fd;
-        Object.assign(this._confRun, config);
+        try {
+          const config = JSON.parse(fse.readFileSync(file).toString());
+          delete config.pid;
+          delete config.fd;
+          Object.assign(this._confRun, config);
+        } catch {
+          /* ignore, it's not critical */
+        }
       });
   }
 

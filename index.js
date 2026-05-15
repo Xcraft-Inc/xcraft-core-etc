@@ -60,7 +60,7 @@ class Etc {
       .forEach((file) => {
         try {
           fse.removeSync(file);
-        } catch (ex) {
+        } catch {
           /* ignore, it's not critical */
         }
       });

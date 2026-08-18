@@ -2,10 +2,7 @@
 
 const path = require('node:path');
 const fse = require('fs-extra');
-const merge = require('lodash/merge');
-
 const xFs = require('xcraft-core-fs');
-const {mergeOverloads} = require('xcraft-core-utils/lib/modules.js');
 
 let etcInstance = null;
 
@@ -83,6 +80,8 @@ class Etc {
   }
 
   static _writeConfigJSON(config, fileName) {
+    const merge = require('lodash/merge');
+
     /* Unflat object */
     const configDeep = {};
     Object.keys(config).forEach((key) => {
@@ -161,6 +160,8 @@ class Etc {
 
     let overrides = {};
     if (overriders) {
+      const {mergeOverloads} = require('xcraft-core-utils/lib/modules.js');
+
       for (let overrider of overriders) {
         if (fse.existsSync(overrider)) {
           const clearModule = require('clear-module');
